@@ -1,0 +1,6 @@
+@PH.SapB1.Vaniperen_HostAddress = http://localhost:5037
+
+GET {{PH.SapB1.Vaniperen_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

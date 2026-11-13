@@ -1,0 +1,491 @@
+{
+  "SetupMetadata": {
+    "UserTables": [
+      //{
+      //  "TableName": "PH_API_USER",
+      //  "TableDescription": "PH API Users",
+      //  "TableType": "bott_NoObject"
+      //}
+      {
+        "TableName": "PH_API_LOG",
+        "TableDescription": "Van Iperen API Request Log",
+        "TableType": "bott_NoObject"
+      }
+    ],
+
+    "UserFields": [
+      //{
+      //  "TableName": "@PH_API_USER",
+      //  "Name": "UserName",
+      //  "Description": "API Username",
+      //  "Type": "db_Alpha",
+      //  "SubType": "st_None",
+      //  "EditSize": 100
+      //},
+      //{
+      //  "TableName": "@PH_API_USER",
+      //  "Name": "PasswordHash",
+      //  "Description": "Password Hash",
+      //  "Type": "db_Alpha",
+      //  "SubType": "st_None",
+      //  "EditSize": 254
+      //},
+      //{
+      //  "TableName": "@PH_API_USER",
+      //  "Name": "CardCode",
+      //  "Description": "Customer CardCode",
+      //  "Type": "db_Alpha",
+      //  "SubType": "st_None",
+      //  "EditSize": 50
+      //},
+      //{
+      //  "TableName": "@PH_API_USER",
+      //  "Name": "Active",
+      //  "Description": "Active Y/N",
+      //  "Type": "db_Alpha",
+      //  "SubType": "st_None",
+      //  "EditSize": 1
+      //},
+      //{
+      //  "TableName": "@PH_API_USER",
+      //  "Name": "Remarks",
+      //  "Description": "Remarks",
+      //  "Type": "db_Alpha",
+      //  "SubType": "st_None",
+      //  "EditSize": 254
+      //},
+      //{
+      //  "TableName": "ORDR",
+      //  "Name": "APIUser",
+      //  "Description": "API Username",
+      //  "Type": "db_Alpha",
+      //  "SubType": "st_None",
+      //  "EditSize": 100
+      //},
+      //{
+      //  "TableName": "ORDR",
+      //  "Name": "APIRef",
+      //  "Description": "External API Order Ref",
+      //  "Type": "db_Alpha",
+      //  "SubType": "st_None",
+      //  "EditSize": 100
+      //}
+      {
+        "TableName": "ORDR",
+        "Name": "CustOrderNum",
+        "Description": "Customer Order Number",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 100
+      },
+      {
+        "TableName": "ORDR",
+        "Name": "OrderStatus",
+        "Description": "Order Status",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 10,
+        "Mandatory": "tNO",
+        "DefaultValue": "TBC",
+        "ValidValues": [
+          {
+            "Value": "TBC",
+            "Description": "To Be Confirmed"
+          },
+          {
+            "Value": "OOR",
+            "Description": "Out Of Range"
+          },
+          {
+            "Value": "OORC",
+            "Description": "OOR Confirmed"
+          },
+          {
+            "Value": "CONF",
+            "Description": "Confirmed"
+          },
+          {
+            "Value": "CANC",
+            "Description": "Cancelled"
+          }
+        ]
+      },
+      {
+        "TableName": "ORDR",
+        "Name": "APIRef",
+        "Description": "API Integration Ref",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 100
+      },
+      {
+        "TableName": "ORDR",
+        "Name": "APIUser",
+        "Description": "API Username",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 100
+      },
+      {
+        "TableName": "ORDR",
+        "Name": "ProcessingStatus",
+        "Description": "Processing Status",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 30
+      },
+      {
+        "TableName": "ODRF",
+        "Name": "CustOrderNum",
+        "Description": "Customer Order Number",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 100
+      },
+      {
+        "TableName": "ODRF",
+        "Name": "OrderStatus",
+        "Description": "Order Status",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 10,
+        "Mandatory": "tNO",
+        "DefaultValue": "TBC",
+        "ValidValues": [
+          {
+            "Value": "TBC",
+            "Description": "To Be Confirmed"
+          },
+          {
+            "Value": "OOR",
+            "Description": "Out Of Range"
+          },
+          {
+            "Value": "OORC",
+            "Description": "OOR Confirmed"
+          },
+          {
+            "Value": "CONF",
+            "Description": "Confirmed"
+          },
+          {
+            "Value": "CANC",
+            "Description": "Cancelled"
+          }
+        ]
+      },
+      {
+        "TableName": "ODRF",
+        "Name": "APIRef",
+        "Description": "API Integration Ref",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 100
+      },
+      {
+        "TableName": "ODRF",
+        "Name": "APIUser",
+        "Description": "API Username",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 100
+      },
+      {
+        "TableName": "ODRF",
+        "Name": "ProcessingStatus",
+        "Description": "Processing Status",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 30
+      },
+      //{
+      //  "TableName": "OCRD",
+      //  "Name": "LimitDateOrder",
+      //  "Description": "Order Limit Date",
+      //  "Type": "db_Date",
+      //  "SubType": "st_None"
+      //},
+      {
+        "TableName": "OCRD",
+        "Name": "LimitOrder",
+        "Description": "Order Limit",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 8
+      },
+      //{
+      //  "TableName": "OCRD",
+      //  "Name": "LimitDateOrder",
+      //  "Description": "Order Limit Date",
+      //  "Type": "db_Date",
+      //  "SubType": "st_None"
+      //},
+      //{
+      //  "TableName": "OCRD",
+      //  "Name": "LimitTimeOrder",
+      //  "Description": "Order Limit Time",
+      //  "Type": "db_Alpha",
+      //  "SubType": "st_None",
+      //  "EditSize": 8
+      //},
+      {
+        "TableName": "RDR1",
+        "Name": "VI_LineStatus",
+        "Description": "Van Iperen Line Status",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 10,
+        "Mandatory": "tNO",
+        "ValidValues": [
+          {
+            "Value": "CANCELLED",
+            "Description": "Cancelled"
+          },
+          {
+            "Value": "DISPATCHED",
+            "Description": "Dispatched"
+          },
+          {
+            "Value": "PENDING",
+            "Description": "Pending"
+          },
+          {
+            "Value": "CONFIRMED",
+            "Description": "Confirmed"
+          }
+        ]
+      },
+      //For API Audit Log
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "CorrId",
+        "Description": "Correlation ID",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 50
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "ReceivedAt",
+        "Description": "Request Received At UTC",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 35
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "HttpMethod",
+        "Description": "HTTP Method",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 10
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "Endpoint",
+        "Description": "API Endpoint",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 100
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "UserName",
+        "Description": "API Username",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 100
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "CustOrderNum",
+        "Description": "Customer Order Number",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 100
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "BillToParty",
+        "Description": "Bill To Party",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 50
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "HttpStatus",
+        "Description": "HTTP Status Code",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 3
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "AuditStatus",
+        "Description": "Audit Processing Status",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 20,
+        "DefaultValue": "STARTED",
+        "ValidValues": [
+          {
+            "Value": "STARTED",
+            "Description": "Started"
+          },
+          {
+            "Value": "SUCCESS",
+            "Description": "Success"
+          },
+          {
+            "Value": "REJECTED",
+            "Description": "Rejected"
+          },
+          {
+            "Value": "FAILED",
+            "Description": "Failed"
+          }
+        ]
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "BizStatus",
+        "Description": "Business Processing Status",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 30
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "Operation",
+        "Description": "Operation Type",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 30
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "SapObject",
+        "Description": "SAP Object",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 20
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "SapDocEntry",
+        "Description": "SAP DocEntry",
+        "Type": "db_Numeric",
+        "SubType": "st_None",
+        "EditSize": 11
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "OrderStatus",
+        "Description": "Order Status",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 10
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "HasWarnings",
+        "Description": "Has Warnings",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 1,
+        "DefaultValue": "N",
+        "ValidValues": [
+          {
+            "Value": "Y",
+            "Description": "Yes"
+          },
+          {
+            "Value": "N",
+            "Description": "No"
+          }
+        ]
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "EmailNotified",
+        "Description": "Warning Email Notified",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 1,
+        "DefaultValue": "N",
+        "ValidValues": [
+          {
+            "Value": "Y",
+            "Description": "Yes"
+          },
+          {
+            "Value": "N",
+            "Description": "No"
+          }
+        ]
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "EmailNotifiedAt",
+        "Description": "Email Notified At UTC",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 35
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "EmailAttempts",
+        "Description": "Email Attempt Count",
+        "Type": "db_Numeric",
+        "SubType": "st_None",
+        "EditSize": 5
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "RequestJson",
+        "Description": "Request JSON",
+        "Type": "db_Memo",
+        "SubType": "st_None"
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "ResponseJson",
+        "Description": "Response JSON",
+        "Type": "db_Memo",
+        "SubType": "st_None"
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "WarningsJson",
+        "Description": "Warnings JSON",
+        "Type": "db_Memo",
+        "SubType": "st_None"
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "ErrorText",
+        "Description": "Error Details",
+        "Type": "db_Memo",
+        "SubType": "st_None"
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "CompletedAt",
+        "Description": "Completed At UTC",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 35
+      },
+      {
+        "TableName": "@PH_API_LOG",
+        "Name": "EmailError",
+        "Description": "Email Notification Error",
+        "Type": "db_Memo",
+        "SubType": "st_None"
+      }
+
+
+    ]
+  }
+}
