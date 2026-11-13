@@ -1009,12 +1009,37 @@ public sealed class SapOrderSubmitService
         {
             CardCode = GetString(obj, "CardCode"),
             //LimitDateRaw = GetString(obj, "U_LimitDateOrder"),
-            LimitTimeRaw = GetString(obj, "U_LimitOrder"),
-            ShippingLeadDaysRaw =
-                string.IsNullOrWhiteSpace(_options.ShippingLeadDaysField)
-                    ? ""
-                    : GetString(obj, _options.ShippingLeadDaysField.Trim())
+            LimitTimeRaw = GetString(obj, "U_LimitOrder")
         };
+
+        // Shipping lead days UDF (case-insensitive lookup). Record whether SAP
+        // returned the field at all, so a wrong field name or a Service Layer
+        // that has not picked up the new UDF is reported instead of silently
+        // treated as 0 days.
+        var leadDaysField = _options.ShippingLeadDaysField?.Trim() ?? "";
+
+        if (leadDaysField.Length > 0)
+        {
+            var match = obj.FirstOrDefault(x =>
+                string.Equals(x.Key, leadDaysField, StringComparison.OrdinalIgnoreCase));
+
+            context.ShippingLeadDaysFieldFound = match.Key is not null;
+
+            if (match.Key is not null)
+            {
+                context.ShippingLeadDaysRaw = GetString(obj, match.Key);
+            }
+            else
+            {
+                context.CandidateShippingFields = obj
+                    .Select(x => x.Key)
+                    .Where(x => x.StartsWith("U_", StringComparison.OrdinalIgnoreCase) &&
+                                (x.Contains("Ship", StringComparison.OrdinalIgnoreCase) ||
+                                 x.Contains("Lead", StringComparison.OrdinalIgnoreCase) ||
+                                 x.Contains("Day", StringComparison.OrdinalIgnoreCase)))
+                    .ToList();
+            }
+        }
 
         if (obj["BPAddresses"] is JsonArray addresses)
         {
@@ -1291,6 +1316,28 @@ public sealed class SapOrderSubmitService
     {
         var raw = businessPartner.ShippingLeadDaysRaw?.Trim() ?? "";
 
+        if (!businessPartner.ShippingLeadDaysFieldFound &&
+            !string.IsNullOrWhiteSpace(_options.ShippingLeadDaysField))
+        {
+            var candidates = businessPartner.CandidateShippingFields.Count > 0
+                ? $" Similar fields found on the Business Partner: {string.Join(", ", businessPartner.CandidateShippingFields)}."
+                : "";
+
+            warnings.Add(new SubmitOrderMessage
+            {
+                Type = "WARN",
+                Code = "SHIPPING_LEAD_DAYS_FIELD_NOT_FOUND",
+                Text =
+                    $"SAP did not return the Business Partner field '{_options.ShippingLeadDaysField}', so the shipping date was set to the delivery date {deliveryDate:yyyy-MM-dd}. Check the field name in OrderPosting:ShippingLeadDaysField, or restart the SAP Service Layer if the field was just created.{candidates}"
+            });
+
+            _logger.LogWarning(
+                "ORDER SHIPPING DATE Field not returned by SAP. CardCode={CardCode} Field={Field} Candidates={Candidates}",
+                businessPartner.CardCode,
+                _options.ShippingLeadDaysField,
+                string.Join(",", businessPartner.CandidateShippingFields));
+        }
+
         if (!TryParseShippingLeadDays(raw, out var leadDays))
         {
             warnings.Add(new SubmitOrderMessage
@@ -1330,6 +1377,15 @@ public sealed class SapOrderSubmitService
                     $"Delivery date {deliveryDate:yyyy-MM-dd} minus {leadDays} shipping lead day(s) falls before the order date. The shipping date was set to the order date {shippingDate:yyyy-MM-dd}."
             });
         }
+
+        // Always report the result, so the caller can see the calculation.
+        warnings.Add(new SubmitOrderMessage
+        {
+            Type = "INFO",
+            Code = "SHIPPING_DATE_CALCULATED",
+            Text =
+                $"Shipping date {shippingDate:yyyy-MM-dd} = delivery date {deliveryDate:yyyy-MM-dd} minus {leadDays} shipping lead day(s) (Business Partner field {_options.ShippingLeadDaysField} = '{raw}')."
+        });
 
         _logger.LogInformation(
             "ORDER SHIPPING DATE CardCode={CardCode} DeliveryDate={DeliveryDate} LeadDays={LeadDays} OrderDate={OrderDate} ShippingDate={ShippingDate}",
@@ -1891,6 +1947,10 @@ public sealed class SapOrderSubmitService
 
         // OCRD.U_ShipLeadDays: days to ship before the delivery date (blank = 0).
         public string ShippingLeadDaysRaw { get; set; } = "";
+
+        public bool ShippingLeadDaysFieldFound { get; set; }
+
+        public List<string> CandidateShippingFields { get; set; } = new();
 
         public List<BusinessPartnerAddress> Addresses { get; set; } = new();
     }
