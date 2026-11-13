@@ -121,10 +121,18 @@ public sealed class SapOrderSubmitService
 
         if (existingDocument is null)
         {
+            // Shipping date is calculated only when the draft is first created.
+            var shippingDate = ResolveShippingDate(
+                parsed.OrderDateTime,
+                deliveryDate,
+                businessPartner,
+                warnings);
+
             var createPayload = BuildSapPayload(
                 request,
                 parsed,
                 deliveryDate,
+                shippingDate,
                 processedLines,
                 billToParty,
                 shipToCode,
@@ -167,10 +175,13 @@ public sealed class SapOrderSubmitService
                 warnings);
         }
 
+        // Updates never touch the shipping date (DocDueDate): it keeps the value
+        // calculated at creation, or whatever the user has since set in SAP.
         var updatePayload = BuildSapPayload(
             request,
             parsed,
             deliveryDate,
+            shippingDate: null,
             processedLines,
             billToParty,
             shipToCode,
@@ -998,7 +1009,11 @@ public sealed class SapOrderSubmitService
         {
             CardCode = GetString(obj, "CardCode"),
             //LimitDateRaw = GetString(obj, "U_LimitDateOrder"),
-            LimitTimeRaw = GetString(obj, "U_LimitOrder")
+            LimitTimeRaw = GetString(obj, "U_LimitOrder"),
+            ShippingLeadDaysRaw =
+                string.IsNullOrWhiteSpace(_options.ShippingLeadDaysField)
+                    ? ""
+                    : GetString(obj, _options.ShippingLeadDaysField.Trim())
         };
 
         if (obj["BPAddresses"] is JsonArray addresses)
@@ -1265,10 +1280,113 @@ public sealed class SapOrderSubmitService
         return noticeDays < limitDays;
     }
 
+    // Shipping Date (DocDueDate) = Delivery Date (TaxDate) - BP lead days.
+    // Called only when the draft is created.
+    // Example: delivery 2026-10-20, U_ShipLeadDays = 10 -> shipping 2026-10-10.
+    private DateOnly ResolveShippingDate(
+        DateTimeOffset orderDateTime,
+        DateOnly deliveryDate,
+        BusinessPartnerContext businessPartner,
+        List<SubmitOrderMessage> warnings)
+    {
+        var raw = businessPartner.ShippingLeadDaysRaw?.Trim() ?? "";
+
+        if (!TryParseShippingLeadDays(raw, out var leadDays))
+        {
+            warnings.Add(new SubmitOrderMessage
+            {
+                Type = "WARN",
+                Code = "SHIPPING_LEAD_DAYS_INVALID",
+                Text =
+                    $"The customer's shipping lead days value '{raw}' is not a valid whole number of days. The shipping date was set to the delivery date {deliveryDate:yyyy-MM-dd}."
+            });
+
+            _logger.LogWarning(
+                "ORDER SHIPPING DATE Invalid lead days. CardCode={CardCode} Field={Field} RawValue={RawValue}",
+                businessPartner.CardCode,
+                _options.ShippingLeadDaysField,
+                raw);
+
+            leadDays = 0;
+        }
+
+        var timeZone = ResolveTimeZone(_options.BusinessTimeZone);
+
+        var orderDate = DateOnly.FromDateTime(
+            TimeZoneInfo.ConvertTime(orderDateTime, timeZone).DateTime);
+
+        var shippingDate = CalculateShippingDate(
+            deliveryDate,
+            leadDays,
+            orderDate);
+
+        if (shippingDate != deliveryDate.AddDays(-leadDays))
+        {
+            warnings.Add(new SubmitOrderMessage
+            {
+                Type = "WARN",
+                Code = "SHIPPING_DATE_ADJUSTED",
+                Text =
+                    $"Delivery date {deliveryDate:yyyy-MM-dd} minus {leadDays} shipping lead day(s) falls before the order date. The shipping date was set to the order date {shippingDate:yyyy-MM-dd}."
+            });
+        }
+
+        _logger.LogInformation(
+            "ORDER SHIPPING DATE CardCode={CardCode} DeliveryDate={DeliveryDate} LeadDays={LeadDays} OrderDate={OrderDate} ShippingDate={ShippingDate}",
+            businessPartner.CardCode,
+            deliveryDate,
+            leadDays,
+            orderDate,
+            shippingDate);
+
+        return shippingDate;
+    }
+
+    // Blank = 0 days. SAP may return "10" or "10.0". Negative values are invalid.
+    internal static bool TryParseShippingLeadDays(string? raw, out int leadDays)
+    {
+        leadDays = 0;
+
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return true;
+        }
+
+        if (!decimal.TryParse(
+                raw.Trim(),
+                NumberStyles.Number,
+                CultureInfo.InvariantCulture,
+                out var value) ||
+            value < 0 ||
+            value != decimal.Truncate(value) ||
+            value > 3650)
+        {
+            return false;
+        }
+
+        leadDays = (int)value;
+        return true;
+    }
+
+    // Never earlier than the order date (DocDate): SAP does not accept a
+    // document due date before the posting date.
+    internal static DateOnly CalculateShippingDate(
+        DateOnly deliveryDate,
+        int leadDays,
+        DateOnly orderDate)
+    {
+        var shippingDate = deliveryDate.AddDays(-leadDays);
+
+        return shippingDate < orderDate
+            ? orderDate
+            : shippingDate;
+    }
+
     private JsonObject BuildSapPayload(
         SubmitOrderRequest originalRequest,
         ParsedSubmitOrderRequest parsed,
         DateOnly deliveryDate,
+        DateOnly? shippingDate,
         List<ProcessedOrderLine> processedLines,
         string billToParty,
         string? shipToCode,
@@ -1295,12 +1413,6 @@ public sealed class SapOrderSubmitService
 
             ["DocDate"] =
                 docDate.ToString(
-                    "yyyy-MM-dd",
-                    CultureInfo.InvariantCulture),
-
-            // Shown as "Shipping Date" on the client's form. SAP requires it on a sales order.
-            ["DocDueDate"] =
-                deliveryDate.ToString(
                     "yyyy-MM-dd",
                     CultureInfo.InvariantCulture),
 
@@ -1339,6 +1451,17 @@ public sealed class SapOrderSubmitService
         if (!string.IsNullOrWhiteSpace(shipToCode))
         {
             payload["ShipToCode"] = shipToCode;
+        }
+
+        // DocDueDate is shown as "Shipping Date" on the client's form and SAP
+        // requires it when the document is created. Sent only on create
+        // (delivery date minus the BP's U_ShipLeadDays); updates leave it alone.
+        if (shippingDate.HasValue)
+        {
+            payload["DocDueDate"] =
+                shippingDate.Value.ToString(
+                    "yyyy-MM-dd",
+                    CultureInfo.InvariantCulture);
         }
 
         if (isCreateDraft)
@@ -1765,6 +1888,9 @@ public sealed class SapOrderSubmitService
         //public string LimitDateRaw { get; set; } = "";
 
         public string LimitTimeRaw { get; set; } = "";
+
+        // OCRD.U_ShipLeadDays: days to ship before the delivery date (blank = 0).
+        public string ShippingLeadDaysRaw { get; set; } = "";
 
         public List<BusinessPartnerAddress> Addresses { get; set; } = new();
     }

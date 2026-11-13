@@ -213,6 +213,16 @@
         "SubType": "st_None",
         "EditSize": 8
       },
+      {
+        // Days between the shipping date and the delivery date (blank = same day).
+        // Shipping Date = Delivery Date - this value, set only when the draft is created.
+        "TableName": "OCRD",
+        "Name": "ShipLeadDays",
+        "Description": "Shipping Lead Days",
+        "Type": "db_Alpha",
+        "SubType": "st_None",
+        "EditSize": 4
+      },
       //{
       //  "TableName": "OCRD",
       //  "Name": "LimitDateOrder",

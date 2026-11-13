@@ -18,6 +18,12 @@ public sealed class OrderPostingOptions
 
     public string MissingLimitStatus { get; set; } = "OOR";
 
+    // Business Partner (OCRD) UDF holding the number of days between the shipping
+    // date and the customer's delivery date. Blank/0 = ship on the delivery date.
+    // Used only when the draft is first created: Shipping Date (DocDueDate) =
+    // Delivery Date (TaxDate) minus this number of days.
+    public string ShippingLeadDaysField { get; set; } = "U_ShipLeadDays";
+
     // Item master (OITM) UDF that holds the item's cost centre.
     public string ItemCostCenterField { get; set; } = "U_BIO_CostCenter";
 
